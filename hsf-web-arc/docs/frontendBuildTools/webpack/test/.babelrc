@@ -1,0 +1,23 @@
+{
+  // 这个是babel转换的配置文件
+  "presets": ["@babel/preset-env"],
+  "plugins": [
+    // 对于装饰器转化
+    ["@babel/plugin-proposal-decorators", {
+      "legacy": true
+    }],
+    // 对类进行转化
+    ["@babel/plugin-proposal-class-properties", {
+      "loose": true
+    }],
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "corejs": false,
+        "helpers": true,
+        "regenerator": true,
+        "useESModules": true
+      }
+    ]
+  ]
+}

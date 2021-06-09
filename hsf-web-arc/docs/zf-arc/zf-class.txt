@@ -1,0 +1,32 @@
+Fenglei@0825
+jzq697194868
+asd234987
+
+
+class分为三个部分：
+	1、核心：
+		1、vue2.0/vue3.0 全家桶 （使用以及源码分析）项目的优化、服务端渲染等等！
+		2、Node 基础模块、框架、文件上传
+		3、打包工具webpack
+		4、React全家桶，服务端
+		5、TS + react 工程化
+
+	2、专题：
+		1、编译原理
+		2、v8内存管理
+		3、sourcemap、二进制、PWA、前端性能监控和数据埋点
+		4、js的静态类型检查工具Typescript、
+		5、微前端的基础与原理
+		6、GraphQL + Nest.js
+		7、框架：uni-app、flutter、eletron、ReactNative、egg.js、Koa、express
+		8、计算机网络、安全、前端性能优化
+		9、服务器级别：Linux、Nginx、Docker、CI/CD持续集成、Mongodb、redis、MySQL
+		10、Canvas、echarts、G6等等画图软件
+		11、
+	3、项目：
+		1、微信小程序实战
+		2、Antv/G6
+		3、脚手架实战
+		4、ts + vue/react 实战
+		5、nest.js
+		6、前端全链路监控实战
