@@ -2341,21 +2341,784 @@ ${require("!!raw-loader!./inline.css").default}
 
 ```js
 // webpack的版本是 "webpack": "^5.38.1",
-
-(() => { // webpackBootstrap
-	var __webpack_modules__ = ({
+这个是webpack的最新版本的（2021-6-9）
+1、也是一个自执行的函数；
+2、在其内部也就是__webpack_modules__封装了一个对象，key是文件的路径，值是一个函数，执行也是使用 eval()
+ (() => { // webpackBootstrap
+ 	"use strict";
+ 	var __webpack_modules__ = ({
 
 "./src/index.js":
-(() => {
+((__unused_webpack_module, __unused_webpack___webpack_exports__, __webpack_require__) => {
 
-eval("console.log('lodash', 333333);\r\n\n\n//# sourceURL=webpack://test/./src/index.js?");
+eval("/* harmony import */ var _math_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./math.js */ \"./src/math.js\");\n// import text1 from './index.css';\r\n\r\nfunction component() {\r\n  // const element = document.createElement('div');\r\n  // const element = document.createElement('pre');\r\n  console.log((0,_math_js__WEBPACK_IMPORTED_MODULE_0__.cube)(5));\r\n\r\n  // Lodash, now imported by this script\r\n  // element.innerHTML = _.join(['Hello', 'webpack'], ' ');\r\n  // element.innerHTML = [\r\n  //   'Hello webpack!',\r\n  //   '5 cubed is equal to ' + cube(5)\r\n  // ].join('\\n\\n');\r\n\r\n  //  return element;\r\n }\r\n document.body.appendChild(component());\r\nconsole.log('lodash', 333333);\r\n\n\n//# sourceURL=webpack://test/./src/index.js?");
 
+}),
+
+"./src/math.js":
+((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"cube\": () => (/* binding */ cube)\n/* harmony export */ });\n/* unused harmony export square */\nfunction square(x) {\r\n  return x * x;\r\n}\r\n\r\nfunction cube(x) {\r\n  return x * x * x;\r\n}\n\n//# sourceURL=webpack://test/./src/math.js?");
 })
 
-	});
-	var __webpack_exports__ = {};
-	__webpack_modules__["./src/index.js"]();
-	
-})();
+ 	});
+ 	var __webpack_module_cache__ = {};
+ 	
+ 	// The require function
+ 	function __webpack_require__(moduleId) {
+ 		// Check if module is in cache
+ 		var cachedModule = __webpack_module_cache__[moduleId];
+ 		if (cachedModule !== undefined) {
+ 			return cachedModule.exports;
+ 		}
+ 		// Create a new module (and put it into the cache)
+ 		var module = __webpack_module_cache__[moduleId] = {
+ 			// no module.id needed
+ 			// no module.loaded needed
+ 			exports: {}
+ 		};
+ 	
+ 		// Execute the module function
+ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+ 	
+ 		// Return the exports of the module
+ 		return module.exports;
+ 	}
+ 	/* webpack/runtime/define property getters */
+ 	(() => {
+ 		// define getter functions for harmony exports
+ 		__webpack_require__.d = (exports, definition) => {
+ 			for(var key in definition) {
+ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+ 				}
+ 			}
+ 		};
+ 	})();
+ 	
+ 	/* webpack/runtime/hasOwnProperty shorthand */
+ 	(() => {
+ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+ 	})();
+ 	
+ 	// startup
+ 	// Load entry module and return exports
+ 	// This entry module can't be inlined because the eval devtool is used.
+ 	var __webpack_exports__ = __webpack_require__("./src/index.js");
+ 	
+ })();
+```
+
+# webpack 简单的配置基础
+
+### 1、基本配置
+
+```js
+const path = require('path');
+// html的模板插件
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+// 该插件是将css通过link链接的形式进行引用（css的抽取）
+// style-loader 是将css样式插到style标签中去
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+// 该插件是将css放在标签中去（内联的形式）
+// const HtmlInlineCssWebpackPlugin= require('html-inline-css-webpack-plugin').default;
+const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
+const TerserPlugin = require('terser-webpack-plugin');
+const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+// webpack自己实现了一个模块导入方式，需要使用commonJS的规范，
+module.exports = {
+  context: process.cwd(),
+  // 入口
+  entry: {
+    index:'./src/index.js',
+    common: './src/common.js'
+  },
+  // 输出
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    // [name] 这样写是name是根据入口的文件的key值来，作为输出的文件名
+    filename: '[name].js',
+    publicPath:'/'
+  },
+  // 模型
+  // 承载loader的地方，也是loader配置的地方
+  module: {
+    rules: [
+      // loader 的执行顺序 从右往左
+      // 从下往上 
+      // 可写成 数组 对象 字符串的格式
+      // loader的分类 三类 前置loader(pre) 后置loader(post)  普通loader(normal)
+      // 处理css文件
+      {
+        // 匹配处理文件的扩展名的正则表达式
+        test: /\.css/,
+        // 指定那些css文件需要转化
+        include: path.resolve(__dirname, 'src'),
+        // 排除不需要转化的css文件
+        exclude: /node_modules/,
+        // use使用loader，每个loader可以是一个对象，配置需要的参数
+        use:[{
+          // 要抽取css文件，包含在MiniCssExtractPlugin插件中去
+          loader: MiniCssExtractPlugin.loader,
+          options: {
+            // 指定的是构建后在html里的路径
+            publicPath:'/dist/css/'
+          }
+          // // 指定的loader
+          // loader: 'style-loader',
+          // // loader配置项
+          // options: {
+            // 指定style的插入位置是在最上面
+          //   // insert:'top'
+          // }
+        }, 'css-loader']
+        // loader: ['style-loader', 'css-loader']
+      },
+      // {
+      //   test:/\.(eot|svg|woff2|woff|ttf)/,
+      //   use:'file-loader'
+      // },
+      // 处理图片文件
+      {
+        test: /\.(jpg|jpeg|png|bmp|gif|svg|ttf|woff|woff2|eot)/,
+        use:[
+          {
+            loader: 'url-loader',
+            options:{
+              // 如果图片小于4096会转化为base64，
+              // 超出限制会打包出文件
+              limit: 4096,
+              // 输出路径
+              outputPath: 'images',
+              // 指定的是构建后在html里的路径
+              publicPath: '/dist/images'
+            }
+          }
+        ]
+      }
+    ]
+  },
+  // 插件
+  plugins: [
+    new HtmlWebpackPlugin({
+                  template:'./src/index.html',//指定模板文件
+                  filename:'index.html',//产出后的文件名
+                  inject:false,
+                  hash:true,//为了避免缓存，可以在产出的资源后面添加hash值
+                  // 打包之后产生的片段，和入口保持一致
+                  chunks:['common','index'],
+                  chunksSortMode:'manual'//对引入代码块进行排序的模式
+              }),
+    new MiniCssExtractPlugin({
+      // 抽取出css，打包成一个单独的css文件
+      // 此插件需要修改css的rules
+      // 入口的css文件
+      filename: 'css/[name].css',
+      // 打包之后css出口文件
+      chunkFilename: 'css/[id].css'
+    }),
+    // 注意此插件要放在HtmlWebpackPlugin的下面，HtmlWebpackPlugin的inject设置为true
+    // new HtmlInlineCssWebpackPlugin()
+  ],
+  // 本地服务
+  devServer: {
+    // 启动的是一个静态的目录
+    // 对于webpack启动服务之后是利用webpack-dev-server启动服务之后，把打包好的文件放到内存中去，
+    // 在内存中的目录是以根为目录的，但是静态文件的指向是contentBase的值
+    contentBase: path.resolve(__dirname, 'dist'),
+    host: 'localhost',
+    // 是否开启gzip的压缩
+    compress: true,
+    port: 8082
+  },
+  // 模式
+  mode: 'development',
+  // 压缩文件的配置项
+  optimization: {
+    minimizer: [
+       new UglifyJsPlugin({
+            cache: true,//启动缓存
+            parallel: true,//启动并行压缩
+            //如果为true的话，可以获得sourcemap
+            sourceMap: true // set to true if you want JS source maps
+        }),
+        // new TerserPlugin({
+        //      parallel: true,
+        //      cache: true
+        // }),
+        //压缩css资源的
+        new OptimizeCSSAssetsPlugin({
+             assetNameRegExp:/\.css$/g,
+             //cssnano是PostCSS的CSS优化和分解插件。cssnano采用格式很好的CSS，
+            //  并通过许多优化，以确保最终的生产环境尽可能小。
+             cssProcessor:require('cssnano')
+        })
+    ]
+},
+}
+
+/**
+ * 本段是webpack的基本配置，
+ *    1、entry入口文件的配置（可以多文件、单文件）这个是webpack打包的构建树结构的依赖文件，具体的详细配置看官方文档
+ *    2、output 当webpack将整个项目都构建好了之后，文件的输出目录
+ *    3、module 模块这个主要是webpack使用各种loader转化各种文件，例如css、字体、图片
+ *    4、plugins 这个是webpack本身的一种扩展，用于处理构建时一些其他的操作
+ *    5、mode 是webpack指定的打包模式
+ *    6、optimization 是压缩优化方面的配置
+ * 
+ * 用到的一些包：
+ *    style-loader 是将样式插入到style标签中去 css-loader 将css文件进行转化为js
+ *    url-loader 将图片在指定的范围内转化成base64，主要是对图片进行转化的loader  file-loader 对于一些字体文件进行处理，拷贝，生成内部路径
+ *    html-webpack-plugin 模板的拷贝
+ *    mini-css-extract-plugin css的抽取  html-inline-css-webpack-plugin
+ *    uglifyjs-webpack-plugin js代码的压缩
+ *    terser-webpack-plugin js代码的转化
+ *    optimize-css-assets-webpack-plugin css文件的压缩
+ * */ 
+```
+
+### 2、样式处理
+
+```js
+const path = require('path');
+// webpack自己实现了一个模块导入方式，需要使用commonJS的规范，
+module.exports = {
+  context: process.cwd(),
+  // 入口
+  entry: {
+    index:'./src/index.js',
+    common: './src/common.js'
+  },
+  // 输出
+  output: {
+    // 指定的是我输出的绝对路径
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].js',
+    // 输出的相对路径在dist/下面这样
+    publicPath:'/'
+  },
+  // 模型
+  // 承载loader的地方，也是loader配置的地方
+  module: {
+    rules: [
+      // 规则  css-loader 接续 @import这种语法的
+      // style-loader 他是把css 插入到head的标签中
+      // loader的特点 希望单一
+      // loader的用法 字符串只用一个loader  
+      // 多个loader需要 []
+      // loader的顺序 默认是从右向左执行  从下到上执行
+      // loader还可以写成 对象方式
+      {
+        test:/\.css$/,
+        // 数组形式的使用loader
+        use:['style-loader','css-loader','postcss-loader'],
+          // 转化的那些文件
+        include:path.join(__dirname,'./src'),
+          // 排除不执行的文件
+        exclude:/node_modules/
+     },
+      {
+        test: /\.less/,
+        include: path.resolve(__dirname,'src'),
+        exclude: /node_modules/,
+        // 对象形式的使用loader，可以为loader添加一些配置
+        use: [{
+            loader: 'style-loader',
+        },'css-loader','less-loader']
+    },
+    {
+        test: /\.scss/,
+        include: path.resolve(__dirname,'src'),
+        exclude: /node_modules/,
+        use: [{
+            loader: 'style-loader',
+        },'css-loader','sass-loader']
+    },
+    ]
+  },
+}
+/**
+ * 对于less和scss文件的处理
+ *    1、less less-loader 配置同上
+ *    2、node-sass sass-loader
+ * 3、对于css比较新的css属性的兼容，加上浏览器的前缀
+ *    postcss-loader是处理css解析成js可以处理的抽象语法树会加载postcss.config.js文件  autoprefixer是给样式添加前缀的，需要配合postcss.config.js使用
+ * */ 
+```
+
+### 3、js代码兼容
+
+```js
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+// webpack自己实现了一个模块导入方式，需要使用commonJS的规范，
+module.exports = {
+  context: process.cwd(),
+  // 入口
+  entry: {
+    index:'./src/index.js',
+    common: './src/common.js'
+  },
+  // 输出
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].js',
+    publicPath:'/'
+  },
+  // 模型
+  // 承载loader的地方，也是loader配置的地方
+  module: {
+    rules: [
+      {
+          // test 其实就是使用正则的匹配模式，在webpack内部会在加载文件的同时去校验是否匹配
+        test: /\.jsx?$/,
+        use: {
+            // 需要结合 jsconfig.json 和 .babelrc 文件实现babel的转化和高级语法的向下兼容
+            loader: 'babel-loader',
+            options:{
+                // 这个是es6转到es5 比较基础的转化 但是有些语法是不可以的
+             "presets": ["@babel/preset-env"],
+             "plugins": [
+                 // 转化装饰器，内部自己做一些实现
+                ["@babel/plugin-proposal-decorators", { "legacy": true }],
+                 // class的转化
+                ["@babel/plugin-proposal-class-properties", { "loose" : true }]
+             ]
+            }
+        },
+        include: path.join(__dirname,'src'),
+        exclude:/node_modules/
+    }
+    ]
+  },
+  // 插件
+  plugins: [
+    new HtmlWebpackPlugin({
+                  template:'./src/index.html',//指定模板文件
+                  filename:'index.html',//产出后的文件名
+                  inject:false,
+                  hash:true,//为了避免缓存，可以在产出的资源后面添加hash值
+                  // 打包之后产生的片段，和入口保持一致
+                  chunks:['common','index'],
+                  chunksSortMode:'manual'//对引入代码块进行排序的模式
+              })
+  ],
+  // 本地服务
+  devServer: {
+    contentBase: path.resolve(__dirname, 'dist'),
+    host: 'localhost',
+    compress: true,
+    port: 8082
+  },
+  // 模式
+  mode: 'development',
+}
+
+/**
+ * 配置babel对js代码降级的时候需要作如下操作：
+ *    1、jsconfig.json 文件是允许一些js的实验性语言的书写与编译
+ *    2、babel整体的配置是在.babelrc文件中指定那些需要编译
+ *    3、配置webpack.config.js文件
+ *    4、一些babel的包
+ *        1、 babel的核心包
+ *           babel-loader 
+ *           @babel/core 
+ *           @babel/preset-env  
+ *           @babel/preset-react
+ *         
+ *        2、babel的插件
+ *           @babel/plugin-proposal-decorators 
+ *           @babel/plugin-proposal-class-properties
+ *        3、babel运行时的一些优化插件
+ *          具体看文档babel
+ *          @babel/plugin-transform-runtime 开发环境下的优化插件
+ *          @babel/runtime 生产环境下 
+ * */ 
+```
+
+### 4、代码格式化
+
+```js
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+// webpack自己实现了一个模块导入方式，需要使用commonJS的规范，
+module.exports = {
+  context: process.cwd(),
+  // 入口
+  entry: {
+    index:'./src/index.js',
+    common: './src/common.js'
+  },
+  // 输出
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].js',
+    publicPath:'/'
+  },
+  // 模型
+  // 承载loader的地方，也是loader配置的地方
+  module: {
+    rules: [
+      {
+        test: /\.jsx?$/,
+        use: {
+            loader: 'babel-loader',
+            options:{
+             "presets": ["@babel/preset-env"],
+             "plugins": [
+                ["@babel/plugin-proposal-decorators", { "legacy": true }],
+                ["@babel/plugin-proposal-class-properties", { "loose" : true }]
+             ]
+            }
+        },
+        include: path.join(__dirname,'src'),
+        exclude:/node_modules/
+    },
+    //配置加载规则
+      {
+          test: /\.js$/,
+          loader: 'eslint-loader',
+          // 在所有js文件处理的loader前面加载去校验代码规范
+          // loader的加载分为normal 后置 前置 三种加载方式，enforce可以强制标明loader的加载方式
+          enforce: "pre",
+          include: [path.resolve(__dirname, 'src')], // 指定检查的目录
+          options: { fix: true } // 这里的配置项参数将会被传递到 eslint 的 CLIEngine   
+      },]
+  },
+  // 插件
+  plugins: [
+    new HtmlWebpackPlugin({
+                  template:'./src/index.html',//指定模板文件
+                  filename:'index.html',//产出后的文件名
+                  // true || 'head' || 'body' || false将所有资产注入给定的templateor templateContent
+                  inject: true,
+                  hash:true,//为了避免缓存，可以在产出的资源后面添加hash值
+                  // 打包之后产生的片段，和入口保持一致
+                  chunks:['common','index'],
+                  chunksSortMode:'manual'//对引入代码块进行排序的模式
+              })
+  ],
+  // 本地服务
+  devServer: {
+    contentBase: path.resolve(__dirname, 'dist'),
+    host: 'localhost',
+    compress: true,
+    port: 8082
+  },
+  // 模式
+  mode: 'development',
+}
+/**
+ * eslint eslint-loader babel-eslint
+ * 可以在官网选择之后直接使用，需要配合.eslintrc.js/.eslintrc.json文件进行使用，这个文件就是配置代码的开发规范
+ * */ 
+```
+
+### 5、清除打包文件/调试打包文件
+
+```js
+let path = require('path');
+let HtmlWebpackPlugin = require('html-webpack-plugin')
+let { CleanWebpackPlugin } = require('clean-webpack-plugin');
+let webpack = require('webpack')
+module.exports = { // node commonjs规范
+    entry:'./src/index.js', // 当前入口文件的位置  
+    output:{
+        filename:'bundle.[hash:8].js',
+        path:path.resolve(__dirname,'dist')
+    },
+    // devtool: false,
+    plugins:[
+      // 清除dist文件夹下的文件
+        // 在重新打包之前删除之前打包的文件
+        new CleanWebpackPlugin(),
+        new HtmlWebpackPlugin({
+            template:'./src/index.html',
+            minify:{
+                removeAttributeQuotes:true,
+                collapseWhitespace:true
+            },
+            inject: true,
+            hash:true,
+            filename:'login.html'
+        }),
+        // 这个是插件的支持，当然webpack内部也是可以通过devtool来配置sourceMap的
+        // 具体的请详细查看文档
+        // new webpack.SourceMapDevToolPlugin({
+        //     filename: '[name].js.map',
+        //     exclude: ['vendor.js']
+        // })
+    ]
+}
+```
+
+### 6、插件的使用
+
+```js
+let path = require('path');
+let HtmlWebpackPlugin = require('html-webpack-plugin')
+let { CleanWebpackPlugin } = require('clean-webpack-plugin');
+let webpack = require('webpack')
+// 主要是讲插件使用的时候全局变量的暴露
+/**
+ * 3、第三种插件变量的方式（在入口文件中引入）文件内部
+ * require("expose-loader?$!jquery");
+ * */ 
+module.exports = { // node commonjs规范
+    entry: {
+        index:'./src/index.js',
+        common: './src/common.js'
+    }, // 当前入口文件的位置  
+    output:{
+        filename:'[name].[hash:8].js',
+        path:path.resolve(__dirname,'dist')
+    },
+    module:{
+        rules:[
+            // 2、插件暴露的第二种方式  在loader规则中
+            // 1、首先你需要在入口文件引入之后，会通过expose-loader暴露到全局 import $ from "jquery";
+            // 2、在其他文件中就可以使用了
+            { 
+                test: require.resolve("jquery"),
+                loader: "expose-loader",
+                options: {
+                  exposes: ["$", "jQuery"],
+                },
+            }
+        ]
+    },
+    plugins:[
+      // 清除dist文件夹下的文件
+        new CleanWebpackPlugin(),
+        new HtmlWebpackPlugin({
+            template:'./src/index.html',
+            minify:{
+                removeAttributeQuotes:true,
+                collapseWhitespace:true
+            },
+            inject: true,
+            hash:true,
+            filename:'login.html'
+        }),
+        // 插件的引入 1、第一种
+        // 这个只是一种向文件中注入变量，而不需要每个文件自己引用
+        // 1、webpack配置ProvidePlugin后，在使用时将不再需要import和require进行引入，直接使用即可
+        // 2、_ 函数会自动添加到当前模块的上下文，无需显示声明
+        // 意思就是说webpack会为每一个文件中注入_这个变量，并不是放在全局的作用域下面，所以在全局中引入会报错
+        // 不好的是会把lodash整个库都打包进去，文件就会很大
+        new webpack.ProvidePlugin({
+            _:'lodash'
+        })
+    ],
+    // 外部环境，不打包
+    externals: {
+        // 解决想引入jquery但是不想打包到压缩文件中，就排除
+        // import $ from 'jquery'; 文件中导入就可以使用了
+        jquery: 'jQuery',
+    },
+}
+```
+
+### 7、静态文件的拷贝/服务器的代理
+
+```js
+let path = require('path');
+let HtmlWebpackPlugin = require('html-webpack-plugin')
+let { CleanWebpackPlugin } = require('clean-webpack-plugin');
+let webpack = require('webpack');
+let CopyWebpackPlugin = require('copy-webpack-plugin');
+module.exports = { // node commonjs规范
+    entry: {
+        index:'./src/index.js',
+        // common: './src/common.js'
+    }, // 当前入口文件的位置  
+    output:{
+        // name 字段采用的是入口文件的名字 为了房子打包文件的缓存在文件的后面加上hash值，值的长度为8位
+        filename:'[name].[hash:8].js',
+        path:path.resolve(__dirname,'dist')
+    },
+    module:{
+        rules:[
+        ]
+    },
+    plugins:[
+      // 清除dist文件夹下的文件
+        new CleanWebpackPlugin(),
+        new HtmlWebpackPlugin({
+            template:'./src/index.html',
+            minify:{
+                removeAttributeQuotes:true,
+                collapseWhitespace:true
+            },
+            inject: true,
+            hash:true,
+            filename:'login.html'
+        }),
+        // 添加商标
+        new webpack.BannerPlugin('hsf测试'),
+        new CopyWebpackPlugin(
+            {
+                patterns: [
+                  { 
+                    //静态资源目录源地址
+                    from: path.resolve(__dirname,'src/static'), 
+                    // 目标地址，相对于output的path目录
+                    to: path.resolve(__dirname,'dist/static') },
+                ],
+              })
+    ],
+    // //默认false,也就是不开启
+    // watch:true,
+    // //只有开启监听模式时，watchOptions才有意义
+    // watchOptions:{
+    //   //默认为空，不监听的文件或者文件夹，支持正则匹配
+    //   ignored:/node_modules/,
+    //   //监听到变化发生后会等300ms再去执行，默认300ms
+    //   aggregateTimeout:300,
+    //   //判断文件是否发生变化是通过不停的询问文件系统指定议是有变化实现的，默认每秒问1000次
+    //   poll:1000
+    // }
+}
+```
+
+```js
+let path = require('path');
+let HtmlWebpackPlugin = require('html-webpack-plugin')
+let { CleanWebpackPlugin } = require('clean-webpack-plugin');
+let webpack = require('webpack');
+let CopyWebpackPlugin = require('copy-webpack-plugin');
+module.exports = { // node commonjs规范
+    entry: {
+        index:'./src/index.js',
+        // common: './src/common.js'
+    }, // 当前入口文件的位置  
+    output:{
+        filename:'[name].[hash:8].js',
+        path:path.resolve(__dirname,'dist')
+    },
+    module:{
+        rules:[
+        ]
+    },
+    plugins:[
+      // 清除dist文件夹下的文件
+        new CleanWebpackPlugin(),
+        new HtmlWebpackPlugin({
+            template:'./src/index.html',
+            minify:{
+                removeAttributeQuotes:true,
+                collapseWhitespace:true
+            },
+            inject: true,
+            hash:true,
+            filename:'login.html'
+        }),
+        // 添加商标
+        new webpack.BannerPlugin('hsf测试'),
+        new CopyWebpackPlugin(
+            {
+                patterns: [
+                  { 
+                    //静态资源目录源地址
+                    from: path.resolve(__dirname,'src/static'), 
+                    // 目标地址，相对于output的path目录
+                    to: path.resolve(__dirname,'dist/static') },
+                ],
+              })
+    ],
+    devServer: {
+        // 开发的时候接口的代理
+        // 这一张有很多需要看一下
+        proxy: {
+            // 代理的接口
+          '/api': {
+            // 可以修改域名（解决跨域的问题）
+            target: 'http://localhost:3000',
+            // 将/api 替换成/
+            pathRewrite: { '^/api': '/' },
+          },
+        },
+        // 做一些请求的拦截器，可以做mock数据
+        before: function (app, server, compiler) {
+            app.get('/some/path', function (req, res) {
+              res.json({ custom: 'response' });
+        });
+    },
+    // //默认false,也就是不开启
+    // watch:true,
+    // //只有开启监听模式时，watchOptions才有意义
+    // watchOptions:{
+    //   //默认为空，不监听的文件或者文件夹，支持正则匹配
+    //   ignored:/node_modules/,
+    //   //监听到变化发生后会等300ms再去执行，默认300ms
+    //   aggregateTimeout:300,
+    //   //判断文件是否发生变化是通过不停的询问文件系统指定议是有变化实现的，默认每秒问1000次
+    //   poll:1000
+    // }
+}}
+```
+
+### 8、路径的解析/打包环境的区分
+
+```js
+let path = require('path');
+let HtmlWebpackPlugin = require('html-webpack-plugin')
+let { CleanWebpackPlugin } = require('clean-webpack-plugin');
+module.exports = { // node commonjs规范
+    entry: {
+        index:'./src/index.js',
+        // common: './src/common.js'
+    }, // 当前入口文件的位置  
+    output:{
+        filename:'[name].[hash:8].js',
+        path:path.resolve(__dirname,'dist')
+    },
+    module:{
+        rules:[
+        ]
+    },
+    plugins:[
+      // 清除dist文件夹下的文件
+        new CleanWebpackPlugin(),
+        new HtmlWebpackPlugin({
+            template:'./src/index.html',
+            minify:{
+                removeAttributeQuotes:true,
+                collapseWhitespace:true
+            },
+            inject: true,
+            hash:true,
+            filename:'login.html'
+        }),
+    ],
+    // 解析
+    // 对于路径解析还有很多，具体详情查看文档
+    resolve: {
+        // 添加文件后面的扩展名，在导入的时候就不用加了
+        extensions: [".js",".jsx",".json",".css"],
+        // 为一些路径配置别名，剪短了导入路径的长度
+        alias: {
+            Utilities: path.resolve(__dirname, 'src/utilities/'),
+            Templates: path.resolve(__dirname, 'src/templates/'),
+        },
+        // 告诉webpack对模块的搜索，会查找那些目录（一般是第三方的模块）
+        modules: ['node_modules'],
+    },
+}
+```
+
+```js
+let merge = require('webpack-merge')
+let dev = require('./webpack.dev');
+let prod = require('./webpack.prod');
+// 可以通过 --env.xxx设置环境变量 来加载不同的配置文件
+// 所谓也就是说当你的script 也就是你在终端输入的命令中可以带有你想要的环境格式
+module.exports = (env)=>{
+  if(env.production){
+    return merge(base,prod)
+  }else{
+    return merge(base,dev)
+  }
+}
 ```
 

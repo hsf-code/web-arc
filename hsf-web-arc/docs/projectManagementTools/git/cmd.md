@@ -6,15 +6,11 @@ author: hsf
 isTimeLine: true
 ---
 
-我平时使用 Git 的时候，很多的 Git 命令我都不是很常用，工作中一般我们会配合一些可视化工具，或者编辑器自带的一些插件去维护 Git 仓库，但是我们也要记得一些常用 Git 命令来应变一些特殊的场景，下面是我收录整理的常用和不常用的一些 Git 命令，希望能帮助到大家更好的掌握 Git 的使用，如果文章和笔记能带您一丝帮助或者启发，请不要吝啬你的赞和收藏，你的肯定是我前进的最大动力😁
-
-- 附笔记链接，阅读往期更多优质文章可移步查看，喜欢的可以给我点赞鼓励哦：https://github.com/Wscats/CV/issues/31
-
 ## **新建**
 
 创建一个新的 git 版本库。这个版本库的配置、存储等信息会被保存到.git 文件夹中
 
-```
+```shell
 # 初始化当前项目
 $ git init
 
@@ -34,7 +30,7 @@ $ git clone [url]
 
 更改设置。可以是版本库的设置，也可以是系统的或全局的
 
-```
+```shell
 # 显示当前的Git配置
 $ git config --list
 
@@ -59,7 +55,7 @@ $ git config --system core.editor <editor>
 
 git 内置了对命令非常详细的解释，可以供我们快速查阅
 
-```
+```shell
 # 查找可用命令
 $ git help
 
@@ -77,7 +73,7 @@ $ git help init
 
 显示索引文件（也就是当前工作空间）和当前的头指针指向的提交的不同
 
-```
+```shell
 # 显示分支，未跟踪文件，更改和其他不同
 $ git status
 
@@ -89,7 +85,7 @@ $ git help status
 
 获取某些文件，某些分支，某次提交等 git 信息
 
-```
+```shell
 # 显示commit历史，以及每次commit发生变更的文件
 $ git log --stat
 
@@ -174,7 +170,7 @@ $ git br --no-merged
 
 添加文件到当前工作空间中。如果你不使用 `git add` 将文件添加进去，那么这些文件也不会添加到之后的提交之中
 
-```
+```shell
 # 添加一个文件
 $ git add test.js
 
@@ -202,7 +198,7 @@ $ git add -p
 
 rm 和上面的 add 命令相反，从工作空间中去掉某个文件
 
-```
+```shell
 # 移除 HelloWorld.js
 $ git rm HelloWorld.js
 
@@ -220,7 +216,7 @@ $ git rm --cached [file]
 
 管理分支，可以通过下列命令对分支进行增删改查切换等
 
-```
+```shell
 # 查看所有的分支和远程分支
 $ git branch -a
 
@@ -300,7 +296,7 @@ $ git br -D <branch>
 
 将当前工作空间更新到索引所标识的或者某一特定的工作空间
 
-```
+```shell
 # 检出一个版本库，默认将更新到master分支
 $ git checkout
 # 检出到一个特定的分支
@@ -313,7 +309,7 @@ $ git checkout -b newBranch
 
 远程同步的远端分支
 
-```
+```shell
 # 下载远程仓库的所有变动
 $ git fetch [remote]
 
@@ -353,7 +349,7 @@ $ git push [remote] --all
 
 ## **撤销**
 
-```
+```shell
 # 恢复暂存区的指定文件到工作区
 $ git checkout [file]
 
@@ -385,7 +381,7 @@ $ git revert [commit]
 # 恢复最后一次提交的状态
 $ git revert HEAD
 
-# 暂时将未提交的变化移除，稍后再移入
+# 暂时将未提交的变化移除，稍后再移入 也就是现存藏，之后在应用储藏
 $ git stash
 $ git stash pop
 
@@ -403,7 +399,7 @@ $ git stash drop
 
 将当前索引的更改保存为一个新的提交，这个提交包括用户做出的更改与信息
 
-```
+```shell
 # 提交暂存区到仓库区附带提交信息
 $ git commit -m [message]
 
@@ -428,7 +424,7 @@ $ git commit --amend [file1] [file2] ...
 
 显示当前工作空间和提交的不同
 
-```
+```shell
 # 显示工作目录和索引的不同
 $ git diff
 
@@ -445,7 +441,7 @@ $ git diff HEAD
 
 可选配置：
 
-```
+```shell
 # 感谢Travis Jeffery提供的以下用法：
 # 在搜索结果中显示行号
 $ git config --global grep.lineNumber true
@@ -463,7 +459,7 @@ $ git grep -e 'arrayListName' --and \\( -e add -e remove \\)
 
 显示这个版本库的所有提交
 
-```
+```shell
 # 显示所有提交
 $ git log
 
@@ -490,7 +486,7 @@ $ git log --stat
 
 合并就是将外部的提交合并到自己的分支中
 
-```
+```shell
 # 将其他分支合并到当前分支
 $ git merge branchName
 
@@ -503,7 +499,7 @@ $ git merge --no-ff branchName
 
 重命名或移动一个文件
 
-```
+```shell
 # 重命名
 $ git mv test.js test2.js
 
@@ -520,7 +516,7 @@ $ git mv -f myFile existingFile
 
 ## **tag**
 
-```
+```shell
 # 列出所有tag
 $ git tag
 
@@ -553,7 +549,7 @@ $ git checkout -b [branch] [tag]
 
 从远端版本库合并到当前分支
 
-```
+```shell
 # 从远端origin的master分支更新版本库
 # git pull <远端> <分支>
 $ git pull origin master
@@ -564,7 +560,7 @@ $ git pull --no-ff
 
 ## **ci**
 
-```
+```shell
 $ git ci <file>
 $ git ci .
 # 将git add, git rm和git ci等操作都合并在一起做
@@ -578,7 +574,7 @@ $ git ci --amend
 
 将一个分支上所有的提交历史都应用到另一个分支上*不要在一个已经公开的远端分支上使用 rebase*.
 
-```
+```shell
 # 将experimentBranch应用到master上面
 # git rebase <basebranch> <topicbranch>
 $ git rebase master experimentBranch
@@ -586,27 +582,28 @@ $ git rebase master experimentBranch
 
 ## **reset (谨慎使用)**
 
-将当前的头指针复位到一个特定的状态。这样可以使你撤销 merge、pull、commits、add 等 这是个很强大的命令，但是在使用时一定要清楚其所产生的后果
+将当前的头指针复位到一个特定的状态。这样可以使你撤销 merge、pull、commit、add 等 这是个很强大的命令，但是在使用时一定要清楚其所产生的后果
 
-```
-# 使 staging 区域恢复到上次提交时的状态，不改变现在的工作目录
+```shell
+# 使 staging （暂存区） 区域恢复到上次提交时的状态，不改变现在的工作目录
 $ git reset
 
 # 使 staging 区域恢复到上次提交时的状态，覆盖现在的工作目录
 $ git reset --hard
 
 # 将当前分支恢复到某次提交，不改变现在的工作目录
-# 在工作目录中所有的改变仍然存在
+# 在工作目录中所有的改变仍然存在 
+# 可以撤销commit的提交
 $ git reset dha78as
 
 # 将当前分支恢复到某次提交，覆盖现在的工作目录
-# 并且删除所有未提交的改变和指定提交之后的所有提交
+# --hard 会回退到你想要的分支，但是会覆盖所有的文件，并且删除所有未提交的改变和指定提交之后的所有提交
 $ git reset --hard dha78as
 ```
 
 ## **其他**
 
-```
+```shell
 # 生成一个可供发布的压缩包
 $ git archive
 
