@@ -1,1 +1,0 @@
-webpack自己实现了一个模块导入机制，__webpack_require__ 是一个自执行函数

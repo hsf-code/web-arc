@@ -1,6 +1,0 @@
-{
-  // 对一些实验性的语法，比如装饰器，是否可以编译的配置
-  "compilerOptions": {
-    "experimentalDecorators": true
-  }
-}
