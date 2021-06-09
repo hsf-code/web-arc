@@ -2290,14 +2290,15 @@ ${require("!!raw-loader!./inline.css").default}
 
 分析： 
 	1、modules本身是一个对象、其中的key是文件的路径、值是一个函数，语句代码的执行使用的是 eval()
-	2、installedModules 是一个缓存对象，缓存那些已经加载过的文件
+	2、installedModules 是一个缓存对象，缓存那些已经加载过的文件，如果文件已经缓存，就直接返回缓存的文件，如果没有缓存就缓存一下installedModules[moduleId]
     3、__webpack_require__ 是webpack内部实现的文件加载机制，在浏览器中不能使用commonJS的规范，但是可以使用ES6的模块加载机制
+    4、采用的是call的方式执行文件打包之后的函数 modules[moduleId].call
 (function (modules) { // webpackBootstrap
   // The module cache 先定义一个缓存
   var installedModules = {};
   // "./src/index.js" :{}
 
-  // The require function   配置了 实现了require
+  // The require function   配置了 实现了require  moduleId是最后传进去的，可以单入口/多入口
   function __webpack_require__(moduleId) { // "./src/index.js"
 
     // Check if module is in cache
@@ -2308,6 +2309,7 @@ ${require("!!raw-loader!./inline.css").default}
     var module = installedModules[moduleId] = {
       // 是一个文件路径名
       i: moduleId,
+      // 模块一开始未加载
       l: false,
       exports: {}
     };
@@ -2315,14 +2317,14 @@ ${require("!!raw-loader!./inline.css").default}
     // Execute the module function
     modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 
-    // Flag the module as loaded
+    // Flag the module as loaded 将模块标记为已加载
     module.l = true;
 
-    // Return the exports of the module
+    // Return the exports of the module 返回这个执行的对象
     return module.exports;
   }
 
-
+  // 返回一个执行的加载函数
   return __webpack_require__(__webpack_require__.s = "./src/index.js"); // 入口模块
 })
 ({
