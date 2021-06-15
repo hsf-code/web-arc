@@ -2505,7 +2505,7 @@ module.exports = {
                   filename:'index.html',//产出后的文件名
                   inject:false,
                   hash:true,//为了避免缓存，可以在产出的资源后面添加hash值
-                  // 打包之后产生的片段，和入口保持一致
+                  // 打包之后产生的片段，和入口名字保持一致 （代表了那些js的代码块打包到index.html文件中去）
                   chunks:['common','index'],
                   chunksSortMode:'manual'//对引入代码块进行排序的模式
               }),
@@ -2852,6 +2852,51 @@ module.exports = { // node commonjs规范
 }
 ```
 
+打包文件中源码调试其中一种设置
+
+```js
+let path = require('path');
+let HtmlWebpackPlugin = require('html-webpack-plugin');
+module.exports = {
+  mode: 'production',
+  entry: {
+    home: './src/index.js',
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env']
+          }
+        }
+      }
+    ]
+  },
+  // 1) 源码映射 会单独生成一个sourcemap文件 出错了 会标识 当前报错的列和行 大 和 全
+  // devtool:'source-map', // 增加映射文件 可以帮我们调试源代码
+  // 2) 不会产生单独的文件 但是可以显示行和列
+  // devtool:'eval-source-map',
+  // 3)  不会产生列 但是是一个单独的映射文件
+  // devtool:'cheap-module-source-map', // 产生后你可以保留起来
+  // 4) 不会产生文件 集成在打包后的文件中 不会产生列
+  // devtool:'cheap-module-eval-source-map'
+  devtool:'cheap-module-eval-source-map',
+  output: {
+    filename: '[name].js',
+    path: path.resolve(__dirname, 'dist')
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './index.html',
+      filename: 'index.html',
+    })
+  ]
+}
+```
+
 ### 6、插件的使用
 
 ```js
@@ -2967,6 +3012,25 @@ module.exports = { // node commonjs规范
                 ],
               })
     ],
+    devServer:{
+    //3) 有服务端 不用用代理来处理 能不能再服务端中启动webpack 端口用服务端端口
+    
+    
+    //2） 我们前端只想单纯来模拟数据
+    // before(app){ // 提供的方法 钩子
+    //   app.get('/user',(req,res)=>{
+    //     res.json({name:'珠峰架构-before'})
+    //   })
+    // }
+    //1）
+    // 服务器的代理使用的是http-proxy做的代理服务
+    // proxy:{ // 重写的方式 把请求代理到express服务器上
+    //   '/api':{
+    //     target:'http://localhost:3000',
+    //     pathRewrite:{'/api':''}
+    //   }// 配置了一个代理
+    // }
+  },
     // //默认false,也就是不开启
     // watch:true,
     // //只有开启监听模式时，watchOptions才有意义
@@ -3026,6 +3090,30 @@ module.exports = { // node commonjs规范
                 ],
               })
     ],
+    // 对于服务器的代理，webpack内部使用的是express框架搭建的服务，所以可以开一个文件serve.js
+    // 文件内容
+    // ----------------------------------------------------------------------------------
+    // express
+
+        let express = require('express');
+        let app = express();
+        let webpack = require('webpack');
+
+        // 中间件 利用webpack中间件去配置整合
+        let middle = require('webpack-dev-middleware');
+
+        let config = require('./webpack.config.js');
+
+        let compiler = webpack(config);
+
+        app.use(middle(compiler));
+
+        app.get('/user',(req,res)=>{
+          res.json({name:'hsf'})
+        })
+
+        app.listen(3000);
+    // ----------------------------------------------------------------------------------
     devServer: {
         // 开发的时候接口的代理
         // 这一张有很多需要看一下
@@ -3101,8 +3189,13 @@ module.exports = { // node commonjs规范
             Utilities: path.resolve(__dirname, 'src/utilities/'),
             Templates: path.resolve(__dirname, 'src/templates/'),
         },
-        // 告诉webpack对模块的搜索，会查找那些目录（一般是第三方的模块）
+        // 告诉webpack对第三方模块的搜索位置，会查找那些目录（一般是第三方的模块）
         modules: ['node_modules'],
+        // mainFields:['style','main']
+    // mainFiles:[], // 入口文件的名字 index.js
+    // alias:{ // 别名 vue vue.runtime
+    //   bootstrap:'bootstrap/dist/css/bootstrap.css'
+    // }
     },
 }
 ```
@@ -3118,6 +3211,120 @@ module.exports = (env)=>{
     return merge(base,prod)
   }else{
     return merge(base,dev)
+  }
+}
+```
+
+### 9、监控代理
+
+```js
+  watch:true,
+  watchOptions:{ // 监控的选项
+    poll:1000, // 每秒 问我 1000次
+    aggregateTimeout:500, // 防抖 我一直输入代码 
+    ignored:/node_modules/ // 不需要进行监控哪个文件
+  },
+```
+
+### 10、图片的处理
+
+```js
+// 图片的操作的loader 使用的是file-loader 这个loader只是将图片copy到打包的文件目录下去，加上一串地址
+// 对于使用图片的常用loader是url-loader, 可以把图片转换为base64  图片的导入的时候使用require和es6的方式，不要直接赋值为一串地址字符串，
+// webpack 不识别，只是把它当做一串简单字符串而已
+let path = require('path');
+let HtmlWebpackPlugin = require('html-webpack-plugin');
+let MiniCssExtractPlugin = require('mini-css-extract-plugin');
+let OptimizeCss = require('optimize-css-assets-webpack-plugin');
+let UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+let webpack = require('webpack');
+module.exports = {
+  optimization:{ // 优化项
+    minimizer:[
+      new UglifyJsPlugin({
+        cache: true,
+        parallel: true,
+        sourceMap: true 
+      }),
+      new OptimizeCss()
+    ]
+  },
+  mode: 'development', 
+  entry: './src/index.js',
+  output: {
+    filename: 'bundle.js', 
+    path: path.resolve(__dirname, 'build'),
+    // publicPath:'http://www.zhufengpeixun.cn'
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './src/index.html',
+      filename: 'index.html',
+    }),
+    new MiniCssExtractPlugin({
+      filename:'css/main.css'
+    }),
+   
+  ],
+  externals: {
+      jquery: "$"
+  },
+  module: { 
+    rules: [
+        // 将图片插入到html文档中去
+      {
+        test:/\.html$/,
+        use:'html-withimg-loader'
+      },
+      {
+        test:/\.(png|jpg|gif)$/,
+        // 做一个限制 当我们的图片 小于多少k的时候 用base64 来转化
+        // 否则用file-loader产生真实的图片
+        use:{
+          loader: 'url-loader',
+          options:{
+            limit:1,
+            outputPath:'/img/',
+            publicPath:'http://www.zhufengpeixun.cn'
+          }
+        }
+      },
+      {
+        test:/\.js$/, // normal 普通的loader
+        use:{
+          loader:'babel-loader',
+          options:{ // 用babel-loader 需要把es6-es5
+            presets:[
+              '@babel/preset-env'
+            ],
+            plugins:[
+              ["@babel/plugin-proposal-decorators", { "legacy": true }],
+              ["@babel/plugin-proposal-class-properties", { "loose": true }],
+              "@babel/plugin-transform-runtime"
+            ]
+          }
+        },
+        include:path.resolve(__dirname,'src'),
+        exclude:/node_modules/
+      },
+      {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'postcss-loader'
+        ]
+      },
+      {
+        test: /\.less$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader', 
+          'postcss-loader',
+          'less-loader'
+        ]
+      }
+    ]
   }
 }
 ```
