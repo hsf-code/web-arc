@@ -489,7 +489,7 @@ delete g;
 
 在 JavaScript 中 objects 是一种引用类型。两个独立声明的对象永远也不会相等，即使他们有相同的属性，只有在比较一个对象和这个对象的引用时，才会返回true.
 
-```
+```js
 // 两个变量, 两个具有同样的属性、但不相同的对象
 var fruit = {name: "apple"};
 var fruitbear = {name: "apple"};
@@ -500,7 +500,7 @@ fruit === fruitbear // return false
 
 **注意:** "===" 运算符用来检查数值是否相等: 1 === "1"返回false，而1 == "1" 返回true
 
-```
+```js
 // 两个变量, 同一个对象
 var fruit = {name: "apple"};
 var fruitbear = fruit;  // 将fruit的对象引用(reference)赋值给 fruitbear
